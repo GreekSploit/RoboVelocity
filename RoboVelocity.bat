@@ -6,8 +6,8 @@ REM Logic
 REM 1. Mount the disk in Read-Only Mode via Arsenal Image mounter
 REM 2. Double click RoboVelocity 
 REM 3. Run it through Admin Privilleges
-REM 3. Target the NTFS mounted disk
-REM 4. Enter the Destination Folder of extracted Data
+REM 4. Target the NTFS mounted disk
+REM 5. Enter the Destination Folder of extracted Data
 
 
 REM Important Notes..
