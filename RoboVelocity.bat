@@ -1,18 +1,45 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
+REM ######################################################################################################################################################################
 REM Digital Forensics Artifacts extractor based on Robocopy
 REM Logic
 REM 1. Mount the disk in Read-Only Mode via Arsenal Image mounter
 REM 2. Double click RoboVelocity 
 REM 3. Run it through Admin Privilleges
-REM 4. Target the NTFS mounted disk
-REM 5. Enter the Destination Folder of extracted Data
-
-
+REM 3. Target the NTFS mounted disk
+REM 4. Enter the Destination Folder of extracted Data
+REM
+REM ######################################################################################################################################################################
+REM
+REM  What was collected was:
+REM
+REM 1.  Registry Hives
+REM 2.  Windows Event Log Files 
+REM 3.  Prefetch Files
+REM 4.  Pagefile.sys
+REM 5.  Amcache Folder (AppCompat\Programs)
+REM 6.  SRU
+REM 7.  Windows Defender Quarantine Files
+REM 8.  Windows Defender Support Files
+REM 9.  NTUSER.DAT and Transaction Log Files for Every User
+REM 10. AutomaticDestinations for All Users
+REM 11. CustomDestinations for All Users
+REM 12. Standard .lnk Files
+REM 13. Office\Recent Recent .lnk Files
+REM 14. UsrClass.dat and Transaction Log Files for Every User
+REM 15. Browser files collected (Chrome, Edge, Brave, Mozilla Firefox)
+REM 
+REM ######################################################################################################################################################################
+REM
 REM Important Notes..
-REM Admin Rights Needed before Running RoboVelocity
-REM $J and $MFT copy not included
+REM
+REM 1. Admin Rights Needed before Running RoboVelocity
+REM
+REM 2. $J and $MFT copy not included
+REM
+REM ######################################################################################################################################################################
+
 
 :thesourceloop
 set /p "SOURCE=Enter the Source file directory path: "
@@ -249,7 +276,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
 
   REM ---- Mozilla\Firefox Files (Profiles) ----
   if exist "%SRCUSERS%\%%U\AppData\Roaming\Mozilla\Firefox\Profiles" (
-    echo      Copying Brave Browser Files...
+    echo      Copying Mozilla Firefox Browser Files...
     robocopy "%SRCUSERS%\%%U\AppData\Roaming\Mozilla\Firefox\Profiles" "%DSTUSERS%\%%U\AppData\Roaming\Mozilla\Firefox\Profiles" /E /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Roaming\Mozilla\Firefox\Profiles..
     echo.
