@@ -37,6 +37,40 @@ into a destination folder for analysis. It’s designed for repeatable, forensic
 
 ---
 
+## 🧾 Collected Artifacts
+
+RoboVelocity collects the following artifacts (paths are relative to the target volume):
+
+1. **Registry hives** — `\Windows\System32\config`  
+2. **Windows Event Logs** — `\Windows\System32\winevt\Logs`  
+3. **Prefetch files** — `\Windows\Prefetch`  
+4. **Pagefile** — `\pagefile.sys`  
+5. **Amcache folder** — `\Windows\appcompat\Programs`  
+6. **SRU** — `\Windows\System32\sru`  
+7. **Windows Defender quarantine files** — `\ProgramData\Microsoft\Windows Defender\Quarantine`  
+8. **Windows Defender support files** — `\ProgramData\Microsoft\Windows Defender\Support`  
+9. **NTUSER.DAT + transaction logs (all users)** — `\Users\*\NTUSER.DAT`, `\Users\*\NTUSER.DAT.LOG1`, `\Users\*\NTUSER.DAT.LOG2`  
+10. **Jump Lists (AutomaticDestinations, all users)** — `\Users\*\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations`  
+11. **Jump Lists (CustomDestinations, all users)** — `\Users\*\AppData\Roaming\Microsoft\Windows\Recent\CustomDestinations`  
+12. **Recent `.lnk` shortcuts (all users)** — `\Users\*\AppData\Roaming\Microsoft\Windows\Recent`  
+13. **Office Recent `.lnk` shortcuts (all users)** — `\Users\*\AppData\Roaming\Microsoft\Office\Recent`  
+14. **UsrClass.dat + transaction logs (all users)** — `\Users\*\AppData\Local\Microsoft\Windows\UsrClass.dat`, `\Users\*\AppData\Local\Microsoft\Windows\UsrClass.dat.LOG1`, `\Users\*\AppData\Local\Microsoft\Windows\UsrClass.dat.LOG2`  
+15. **ConnectedDevicesPlatform (all users)** — `\Users\*\AppData\Local\ConnectedDevicesPlatform`  
+16. **Browser files (all users)**  
+    - **Chrome** — `\Users\*\AppData\Local\Google\Chrome\User Data`  
+    - **Edge** — `\Users\*\AppData\Local\Microsoft\Edge\User Data`  
+    - **Brave** — *(add path if you want it listed explicitly)*  
+    - **Mozilla Firefox** — *(add path if you want it listed explicitly)*  
+17. **PowerShell console history (all users)** — `\Users\*\AppData\Roaming\Microsoft\Windows\PowerShell`  
+
+### Additional folder paths
+
+- `\Users\*\AppData\Local\Microsoft\Windows\WebCache`  
+- `\Users\*\AppData\Local\Microsoft\Windows\INetCookies`  
+- `\Users\*\AppData\Local\Microsoft\Windows\History`  
+- `\Users\*\AppData\Local\Microsoft\Windows\INetCache`  
+
+---
 
 ## 📝 Logs & Output 📝
 
