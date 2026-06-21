@@ -2,13 +2,17 @@
 setlocal EnableExtensions EnableDelayedExpansion
 
 REM ######################################################################################################################################################################
+REM
 REM Digital Forensics Artifacts extractor based on Robocopy
+REM
 REM Logic
+REM
 REM 1. Mount the disk in Read-Only Mode via Arsenal Image mounter
 REM 2. Double click RoboVelocity 
 REM 3. Run it through Admin Privilleges
 REM 3. Target the NTFS mounted disk
 REM 4. Enter the Destination Folder of extracted Data
+REM
 REM
 REM ######################################################################################################################################################################
 REM
@@ -31,7 +35,7 @@ REM 14. UsrClass.dat and Transaction Log Files for Every User     ->   (...\User
 REM 15. ConnectedDevicesPlatform Folder                           ->   (...\Users\*\AppData\Local\ConnectedDevicesPlatform)
 REM 16. Browser files collected 
 REM        a. Chrome            ->   (...\Users\*\AppData\Local\Google\Chrome\User Data)
-REM        b. Edge              ->   (...\Users\*\AppData\AppData\Local\Microsoft\Edge\User Data)
+REM        b. Edge              ->   (...\Users\*\AppData\Local\Microsoft\Edge\User Data)
 REM        c. Brave             ->   
 REM        d. Mozilla Firefox   ->   
 REM 17. PowerShell Console History ->          AppData\Roaming\Microsoft\Windows\PowerShell
@@ -100,6 +104,11 @@ if not exist "%DEST%\Users" mkdir "%DEST%\Users"
 REM Pagefile Directory
 if not exist "%DEST%\Pagefile" mkdir "%DEST%\Pagefile"
 
+REM Windows Defender Quarantine & Support
+if not exist "%DEST%\Windows Defender" mkdir "%DEST%\Windows Defender"
+if not exist "%DEST%\Windows Defender\Quarantine" mkdir "%DEST%\Windows Defender\Quarantine"
+if not exist "%DEST%\Windows Defender\Support" mkdir "%DEST%\Windows Defender\Support"
+
 
 REM ######################################################################################################################################################################
 
@@ -121,38 +130,60 @@ REM Executing Robocopy To Targets..
 REM ######################################################################################################################################################################
 
 echo      Copying Registry files..
-robocopy "%Registry%" "%DEST%\config" "SYSTEM" "SYSTEM.LOG1" "SYSTEM.LOG2" "SECURITY" "SECURITY.LOG1" "SECURITY.LOG2" "SOFTWARE" "SOFTWARE.LOG1" "SOFTWARE.LOG2" "SAM" "SAM.LOG1" "SAM.LOG2" "DEFAULT" "DEFAULT.LOG1" "DEFAULT.LOG2" /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+robocopy "%Registry%" "%DEST%\config" "SYSTEM" "SYSTEM.LOG1" "SYSTEM.LOG2" "SECURITY" "SECURITY.LOG1" "SECURITY.LOG2" "SOFTWARE" "SOFTWARE.LOG1" "SOFTWARE.LOG2" "SAM" "SAM.LOG1" "SAM.LOG2" "DEFAULT" "DEFAULT.LOG1" "DEFAULT.LOG2" /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 echo      Done on %DEST%\config..
 echo.
 echo      Copying Windows Log files..
-robocopy "%Logs%" "%DEST%\logs" /E /COPY:DAT /DCOPY:DAT /R:3 /W:5 /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+robocopy "%Logs%" "%DEST%\logs" /E /COPY:DAT /DCOPY:DAT /R:3 /W:5 /NP /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 echo      Done on %DEST%\logs..
 echo.
 echo      Copying Prefetch files..
-robocopy "%Prefetch%" "%DEST%\Prefetch" /E /COPY:DAT /DCOPY:DAT /R:3 /W:5 /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+robocopy "%Prefetch%" "%DEST%\Prefetch" /E /COPY:DAT /DCOPY:DAT /R:3 /W:5 /NP /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 echo      Done on %DEST%\Prefetch..
 echo.
 echo      Copying Pagefile.sys..
-robocopy "%SOURCE%" "%DEST%\Pagefile" "pagefile.sys" /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+robocopy "%SOURCE%" "%DEST%\Pagefile" "pagefile.sys" /R:3 /W:5 /NP /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 echo      Done on %DEST%\Pagefile..
 echo.
 echo      Copying Amcache files..
-robocopy "%Amcache%" "%DEST%\AppCompat\Programs" /E /COPY:DAT /DCOPY:DAT /R:3 /W:5 /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+robocopy "%Amcache%" "%DEST%\AppCompat\Programs" /E /COPY:DAT /DCOPY:DAT /R:3 /W:5 /NP /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 echo      Done on %DEST%\AppCompat\Programs..
 echo.
 echo      Copying SRUM files..
-robocopy "%SRUM%" "%DEST%\SRU" /E /COPY:DAT /DCOPY:DAT /R:3 /W:5 /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+robocopy "%SRUM%" "%DEST%\SRU" /E /COPY:DAT /DCOPY:DAT /R:3 /W:5 /NP /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 echo      Done on %DEST%\SRU..
 echo.
 REM Collect Microsoft Defender Quarantine (Path: SRC:\ProgramData\Microsoft\Windows Defender\Quarantine)
 REM Collect Microsoft Defender Quarantine (Path: SRC:\ProgramData\Microsoft\Windows Defender\Support)
 echo      Copying Defender's Quarantine files..
-robocopy "%DefendQ%" "%DEST%\Quarantine" /R:3 /W:5 /COPYALL /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
-echo      Done on %DEST%\Quarantine..
+
+if exist "%DefendQ%\" (
+    robocopy "%DefendQ%" "%DEST%\Windows Defender\Quarantine" /E /XJ /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /B /NFL /NDL /NJH /NJS /NP /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+
+    if !ERRORLEVEL! GEQ 8 (
+        echo      WARNING: Defender Quarantine copy had errors. Check RoboVelocity.log
+    ) else (
+        echo      Done on %DEST%\Windows Defender\Quarantine..
+    )
+) else (
+    echo      Defender Quarantine folder not found: %DefendQ%
+)
+echo.
+echo.
 echo.
 echo      Copying Windows Defender Support files..
-robocopy "%DefendSup%" "%DEST%\Support" /R:3 /W:5 /COPYALL /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
-echo      Done on %DEST%\Support..
+
+if exist "%DefendSup%\" (
+    robocopy "%DefendSup%" "%DEST%\Windows Defender\Support" /E /XJ /R:3 /W:5 /COPY:DAT /DCOPY:DAT /B /NFL /NDL /NJH /NJS /NP /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+
+    if !ERRORLEVEL! GEQ 8 (
+        echo      WARNING: Defender Support copy had errors. Check RoboVelocity.log
+    ) else (
+        echo      Done on %DEST%\Windows Defender\Support..
+    )
+) else (
+    echo      Defender Support folder not found: %DefendSup%
+)
 echo.
 echo.
 echo.
@@ -183,7 +214,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
   REM ---- Collecting Transaction log for NTUSER.DAT.LOG1 ----
   if exist "%SRCUSERS%\%%U\NTUSER.DAT.LOG1" (
     echo      Copying NTUSER.DAT.LOG1 files...
-    robocopy "%SRCUSERS%\%%U" "%DSTUSERS%\%%U" "NTUSER.DAT.LOG1" /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U" "%DSTUSERS%\%%U" "NTUSER.DAT.LOG1" /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U
     echo.
   )
@@ -191,7 +222,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
   REM ---- Collecting Transaction log for NTUSER.DAT.LOG2 ----
   if exist "%SRCUSERS%\%%U\NTUSER.DAT.LOG2" (
     echo      Copying NTUSER.DAT.LOG2 files...
-    robocopy "%SRCUSERS%\%%U" "%DSTUSERS%\%%U" "NTUSER.DAT.LOG2" /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U" "%DSTUSERS%\%%U" "NTUSER.DAT.LOG2" /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U
     echo.
   )
@@ -199,7 +230,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
   REM ---- AutomaticDestinations ----
   if exist "%SRCUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations" (
     echo      Copying AutomaticDestinations files...
-    robocopy "%SRCUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations" "%DSTUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations" /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations" "%DSTUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations" /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations
     echo.
   )
@@ -207,7 +238,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
   REM ---- CustomDestinations ----
   if exist "%SRCUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent\CustomDestinations" (
     echo      Copying CustomDestinations files...
-    robocopy "%SRCUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent\CustomDestinations" "%DSTUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent\CustomDestinations" /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent\CustomDestinations" "%DSTUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent\CustomDestinations" /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent\CustomDestinations
     echo.
   )
@@ -215,7 +246,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
   REM ---- Standard Recent .lnk Files ----
   if exist "%SRCUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent" (
     echo      Copying Standard Recent .lnk Files...
-    robocopy "%SRCUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent" "%DSTUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent" *.lnk /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent" "%DSTUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent" *.lnk /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Roaming\Microsoft\Windows\Recent
     echo.
   )
@@ -223,7 +254,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
   REM ---- Office\Recent Recent .lnk Files ----
   if exist "%SRCUSERS%\%%U\AppData\Roaming\Microsoft\Office\Recent" (
     echo      Copying Office\Recent Recent .lnk Files files...
-    robocopy "%SRCUSERS%\%%U\AppData\Roaming\Microsoft\Office\Recent" "%DSTUSERS%\%%U\AppData\Roaming\Microsoft\Office\Recent" *.lnk /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U\AppData\Roaming\Microsoft\Office\Recent" "%DSTUSERS%\%%U\AppData\Roaming\Microsoft\Office\Recent" *.lnk /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Roaming\Microsoft\Office\Recent
     echo.
   )
@@ -232,7 +263,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
   REM ---- UsrClass.dat Files ----
   if exist "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows\UsrClass.dat" (
     echo      Copying UsrClass.dat files...
-    robocopy "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows" "%DSTUSERS%\%%U\AppData\Local\Microsoft\Windows" "UsrClass.dat" /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows" "%DSTUSERS%\%%U\AppData\Local\Microsoft\Windows" "UsrClass.dat" /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Local\Microsoft\Windows
     echo.
   )
@@ -240,7 +271,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
   REM ---- UsrClass.dat.LOG1 Files ----
   if exist "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows\UsrClass.dat.LOG1" (
     echo      Copying UsrClass.dat.LOG1 files...
-    robocopy "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows" "%DSTUSERS%\%%U\AppData\Local\Microsoft\Windows" "UsrClass.dat.LOG1" /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows" "%DSTUSERS%\%%U\AppData\Local\Microsoft\Windows" "UsrClass.dat.LOG1" /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Local\Microsoft\Windows
     echo.
   )
@@ -248,7 +279,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
   REM ---- UsrClass.dat.LOG2 Files ----
   if exist "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows\UsrClass.dat.LOG2" (
     echo      Copying UsrClass.dat.LOG2 files...
-    robocopy "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows" "%DSTUSERS%\%%U\AppData\Local\Microsoft\Windows" "UsrClass.dat.LOG2" /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows" "%DSTUSERS%\%%U\AppData\Local\Microsoft\Windows" "UsrClass.dat.LOG2" /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Local\Microsoft\Windows
     echo.
   )
@@ -256,7 +287,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
   REM ---- ConnectedDevicesPlatform Files ----
   if exist "%SRCUSERS%\%%U\AppData\Local\ConnectedDevicesPlatform" (
     echo      Copying ConnectedDevicesPlatform files...
-    robocopy "%SRCUSERS%\%%U\AppData\Local\ConnectedDevicesPlatform" "%DSTUSERS%\%%U\AppData\Local\ConnectedDevicesPlatform" /E /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U\AppData\Local\ConnectedDevicesPlatform" "%DSTUSERS%\%%U\AppData\Local\ConnectedDevicesPlatform" /E /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Local\ConnectedDevicesPlatform
     echo.
   )
@@ -264,7 +295,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
   REM ---- Google Chrome Files (User Data) ----
   if exist "%SRCUSERS%\%%U\AppData\Local\Google\Chrome\User Data" (
     echo      Copying Google Chrome Files...
-    robocopy "%SRCUSERS%\%%U\AppData\Local\Google\Chrome\User Data" "%DSTUSERS%\%%U\AppData\Local\Google\Chrome\User Data" /E /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U\AppData\Local\Google\Chrome\User Data" "%DSTUSERS%\%%U\AppData\Local\Google\Chrome\User Data" /E /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Local\Google\Chrome\User Data
     echo.
   )
@@ -272,7 +303,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
   REM ---- Microsoft Edge Files (User Data) ----
   if exist "%SRCUSERS%\%%U\AppData\Local\Microsoft\Edge\User Data" (
     echo      Copying Microsoft Edge Files...
-    robocopy "%SRCUSERS%\%%U\AppData\Local\Microsoft\Edge\User Data" "%DSTUSERS%\%%U\AppData\Local\Microsoft\Edge\User Data" /E /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U\AppData\Local\Microsoft\Edge\User Data" "%DSTUSERS%\%%U\AppData\Local\Microsoft\Edge\User Data" /E /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Local\Microsoft\Edge\User Data
     echo.
   )
@@ -280,7 +311,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
   REM ---- Brave Browser Files (User Data) ----
   if exist "%SRCUSERS%\%%U\AppData\Local\BraveSoftware\Brave-Browser\User Data" (
     echo      Copying Brave Browser Files...
-    robocopy "%SRCUSERS%\%%U\AppData\Local\BraveSoftware\Brave-Browser\User Data" "%DSTUSERS%\%%U\AppData\Local\BraveSoftware\Brave-Browser\User Data" /E /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U\AppData\Local\BraveSoftware\Brave-Browser\User Data" "%DSTUSERS%\%%U\AppData\Local\BraveSoftware\Brave-Browser\User Data" /E /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Local\BraveSoftware\Brave-Browser\User Data
     echo.
   )
@@ -288,7 +319,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
   REM ---- Mozilla\Firefox Files (Profiles) ----
   if exist "%SRCUSERS%\%%U\AppData\Roaming\Mozilla\Firefox\Profiles" (
     echo      Copying Mozilla Firefox Browser Files...
-    robocopy "%SRCUSERS%\%%U\AppData\Roaming\Mozilla\Firefox\Profiles" "%DSTUSERS%\%%U\AppData\Roaming\Mozilla\Firefox\Profiles" /E /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U\AppData\Roaming\Mozilla\Firefox\Profiles" "%DSTUSERS%\%%U\AppData\Roaming\Mozilla\Firefox\Profiles" /E /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Roaming\Mozilla\Firefox\Profiles
     echo.
   )
@@ -297,7 +328,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
 
   if exist "%SRCUSERS%\%%U\AppData\Roaming\Microsoft\Windows\PowerShell" (
     echo      Copying Console History Files...
-    robocopy "%SRCUSERS%\%%U\AppData\Roaming\Microsoft\Windows\PowerShell" "%DSTUSERS%\%%U\AppData\Roaming\Microsoft\Windows\PowerShell" /E /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U\AppData\Roaming\Microsoft\Windows\PowerShell" "%DSTUSERS%\%%U\AppData\Roaming\Microsoft\Windows\PowerShell" /E /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Roaming\Microsoft\Windows\PowerShell
     echo.
   )
@@ -306,7 +337,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
 
   if exist "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows\WebCache" (
     echo      Copying WebCache Folder...
-    robocopy "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows\WebCache" "%DSTUSERS%\%%U\AppData\Local\Microsoft\Windows\WebCache" /E /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows\WebCache" "%DSTUSERS%\%%U\AppData\Local\Microsoft\Windows\WebCache" /E /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Local\Microsoft\Windows\WebCache
     echo.
   )
@@ -315,7 +346,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
 
   if exist "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows\INetCookies" (
     echo      Copying INetCookies Folder...
-    robocopy "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows\INetCookies" "%DSTUSERS%\%%U\AppData\Local\Microsoft\Windows\INetCookies" /E /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows\INetCookies" "%DSTUSERS%\%%U\AppData\Local\Microsoft\Windows\INetCookies" /E /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Local\Microsoft\Windows\INetCookies
     echo.
   )
@@ -324,7 +355,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
 
   if exist "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows\History" (
     echo      Copying History Folder...
-    robocopy "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows\History" "%DSTUSERS%\%%U\AppData\Local\Microsoft\Windows\History" /E /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows\History" "%DSTUSERS%\%%U\AppData\Local\Microsoft\Windows\History" /E /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Local\Microsoft\Windows\History
     echo.
   )
@@ -333,7 +364,7 @@ for /f "delims=" %%U in ('dir /b /ad "%SRCUSERS%" ^| findstr /v /i "Public Defau
 
   if exist "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows\INetCache" (
     echo      Copying INetCache Folder...
-    robocopy "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows\INetCache" "%DSTUSERS%\%%U\AppData\Local\Microsoft\Windows\INetCache" /E /R:3 /W:5 /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
+    robocopy "%SRCUSERS%\%%U\AppData\Local\Microsoft\Windows\INetCache" "%DSTUSERS%\%%U\AppData\Local\Microsoft\Windows\INetCache" /E /R:3 /W:5 /NP /COPY:DAT /DCOPY:DAT /LOG+:"%DEST%\RoboVelocity.log" >NUL 2>&1
 	echo      Done on %DSTUSERS%\%%U\AppData\Local\Microsoft\Windows\INetCache
     echo.
   )
