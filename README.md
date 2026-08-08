@@ -59,8 +59,8 @@ RoboVelocity collects the following artifacts (paths are relative to the target 
 16. **Browser files (all users)**  
     - **Chrome** — `\Users\*\AppData\Local\Google\Chrome\User Data`  
     - **Edge** — `\Users\*\AppData\Local\Microsoft\Edge\User Data`  
-    - **Brave** — *(add path if you want it listed explicitly)*  
-    - **Mozilla Firefox** — *(add path if you want it listed explicitly)*  
+    - **Brave** — `\Users\*\AppData\Local\BraveSoftware\Brave-Browser\User Data`
+    - **Mozilla Firefox** — `\Users\*\AppData\Roaming\Mozilla\Firefox\Profiles`    
 17. **PowerShell console history (all users)** — `\Users\*\AppData\Roaming\Microsoft\Windows\PowerShell`  
 
 ### Additional folder paths
